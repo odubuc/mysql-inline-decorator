@@ -23,5 +23,9 @@
 		"vscode": "^1.0.0",
 		"typescript": "^2.1.4",
 		"@types/node": "*"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nodemailer/nodemailer.git"
+  	}
 }
