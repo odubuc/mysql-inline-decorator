@@ -26,6 +26,6 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/nodemailer/nodemailer.git"
+		"url": "https://github.com/odubuc/mysql-inline-decorator.git"
   	}
 }
