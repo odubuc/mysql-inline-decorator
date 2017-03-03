@@ -127,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
-		timeout = setTimeout(updateDecorations, 500);
+		timeout = setTimeout(updateDecorations, 150);
 	}
 
 	function updateDecorations() {
@@ -165,7 +165,7 @@ export function activate(context: vscode.ExtensionContext) {
 				wFunctions.push(...wFunctionFound);
 				wStrings.push(...wStringFound);
 				wParams.push(...wParamsFound);
-				wNone.push(decoration)
+				wNone.push(decoration);
 
 			}
 
@@ -173,12 +173,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		activeEditor.setDecorations(NoneDecorationType, wNone);
 
-		setTimeout(function () {
-			activeEditor.setDecorations(ParamDecorationType, wParams);
-			activeEditor.setDecorations(StringDecorationType, wStrings);
-			activeEditor.setDecorations(KeywordDecorationType, wKeywords);
-			activeEditor.setDecorations(FunctionDecorationType, wFunctions);
-		}, 500);
+		activeEditor.setDecorations(ParamDecorationType, wParams);
+		activeEditor.setDecorations(StringDecorationType, wStrings);
+		activeEditor.setDecorations(KeywordDecorationType, wKeywords);
+		activeEditor.setDecorations(FunctionDecorationType, wFunctions);
 
 	}
 
