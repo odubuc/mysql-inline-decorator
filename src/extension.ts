@@ -73,14 +73,12 @@ const Functions =
 		'UNIX_TIMESTAMP\\(', 'UpdateXML\\(', 'UPPER\\(', 'USER\\(', 'UTC_DATE\\(', 'UTC_TIME\\(', 'UTC_TIMESTAMP\\(', 'UUID\\(', 'UUID_SHORT\\(', 'VALIDATE_PASSWORD_STRENGTH\\(', 'VALUES\\(', 'VAR_POP\\(',
 		'VAR_SAMP\\(', 'VARIANCE\\(', 'VERSION\\(', 'WAIT_FOR_EXECUTED_GTID_SET\\(', 'WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS\\(', 'WEEK\\(', 'WEEKDAY\\(', 'WEEKOFYEAR\\(', 'WEIGHT_STRING\\(', 'YEAR\\(', 'YEARWEEK\\('
 	];
-var mysqlKeywordRegEx = new RegExp("(?: " + Keywords.join(' | ') + " )", "gi");
-var mysqlFunctionRegEx = new RegExp("(?: " + Functions.join('|') + " )", "gi");
+const mysqlKeywordRegEx = new RegExp("(?: " + Keywords.join(' | ') + " )", "gi");
+const mysqlFunctionRegEx = new RegExp("(?: " + Functions.join('|') + " )", "gi");
 const mysqlStringRegEx = /'(([^'])*)'/gi;
 const mysqlParamRegEx = /\?/gi;
 
-
-// this method is called when vs code is activated
-export function activate(context: vscode.ExtensionContext) {
+const wQueryParserRegEx = new RegExp("(\w+)|,|'|;");
 
 	// create a decorator type that we use to decorate large numbers
 	const KeywordDecorationType = vscode.window.createTextEditorDecorationType({
@@ -104,6 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 
+// this method is called when vs code is activated
+export function activate(context: vscode.ExtensionContext) {
+
 	let activeEditor = vscode.window.activeTextEditor;
 	if (activeEditor) {
 		triggerUpdateDecorations();
@@ -123,77 +124,80 @@ export function activate(context: vscode.ExtensionContext) {
 	}, null, context.subscriptions);
 
 	var timeout = null;
+
 	function triggerUpdateDecorations() {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
-		timeout = setTimeout(updateDecorations, 150);
+		timeout = setTimeout(() => {
+			updateDecorations(activeEditor);
+		}, 50);
 	}
 
-	function updateDecorations() {
-		if (!activeEditor) {
-			return;
-		}
-		const regEx = /`(([^`]|\n)*)`/g;
-		const text = activeEditor.document.getText();
-		const largeNumbers: vscode.Range[] = [];
+}
 
-		let match;
-		const wKeywords = [];
-		const wFunctions = [];
-		const wStrings = [];
-		const wParams = [];
-		const wNone = [];
-
-		while (match = regEx.exec(text)) {
-
-
-			const wKeywordFound = findInMatch(match, mysqlKeywordRegEx);
-			const wFunctionFound = findInMatch(match, mysqlFunctionRegEx, -1);
-
-			//at least 2 keywords found
-			if ((wKeywordFound.length + wFunctionFound.length) > 1) {
-
-				const startPos = activeEditor.document.positionAt(match.index);
-				const endPos = activeEditor.document.positionAt(match.index + match[0].length);
-				const decoration = new vscode.Range(startPos, endPos);
-
-				const wStringFound = findInMatch(match, mysqlStringRegEx);
-				const wParamsFound = findInMatch(match, mysqlParamRegEx);
-
-				wKeywords.push(...wKeywordFound);
-				wFunctions.push(...wFunctionFound);
-				wStrings.push(...wStringFound);
-				wParams.push(...wParamsFound);
-				wNone.push(decoration);
-
-			}
-
-		}
-
-		activeEditor.setDecorations(NoneDecorationType, wNone);
-
-		activeEditor.setDecorations(ParamDecorationType, wParams);
-		activeEditor.setDecorations(StringDecorationType, wStrings);
-		activeEditor.setDecorations(KeywordDecorationType, wKeywords);
-		activeEditor.setDecorations(FunctionDecorationType, wFunctions);
-
+function updateDecorations(activeEditor) {
+	if (!activeEditor) {
+		return;
 	}
+	const regEx = /`(([^`]|\n)*)`/g;
+	const text = activeEditor.document.getText();
+	const largeNumbers: vscode.Range[] = [];
 
-	function findInMatch(iMatch: RegExpExecArray, iRegExp: RegExp, iAdjustment?: number): vscode.Range[] {
-		const stringFound: vscode.Range[] = [];
-		let match;
-		while (match = iRegExp.exec(iMatch[0])) {
+	let match;
+	const wKeywords = [];
+	const wFunctions = [];
+	const wStrings = [];
+	const wParams = [];
+	const wNone = [];
 
-			const startPos = activeEditor.document.positionAt(match.index + iMatch.index);
-			const endPos = activeEditor.document.positionAt(match.index + match[0].length + iMatch.index + Number(iAdjustment || 0));
+	while (match = regEx.exec(text)) {
+
+
+		const wKeywordFound = findInMatch(match, mysqlKeywordRegEx);
+		const wFunctionFound = findInMatch(match, mysqlFunctionRegEx, -1);
+
+		//at least 2 keywords found
+		if ((wKeywordFound.length + wFunctionFound.length) > 1) {
+
+			const startPos = activeEditor.document.positionAt(match.index);
+			const endPos = activeEditor.document.positionAt(match.index + match[0].length);
 			const decoration = new vscode.Range(startPos, endPos);
 
-			stringFound.push(decoration);
+			const wStringFound = findInMatch(match, mysqlStringRegEx);
+			const wParamsFound = findInMatch(match, mysqlParamRegEx);
+
+			wKeywords.push(...wKeywordFound);
+			wFunctions.push(...wFunctionFound);
+			wStrings.push(...wStringFound);
+			wParams.push(...wParamsFound);
+			wNone.push(decoration);
 
 		}
 
-		return stringFound;
 	}
 
+	activeEditor.setDecorations(NoneDecorationType, wNone);
+
+	activeEditor.setDecorations(ParamDecorationType, wParams);
+	activeEditor.setDecorations(StringDecorationType, wStrings);
+	activeEditor.setDecorations(KeywordDecorationType, wKeywords);
+	activeEditor.setDecorations(FunctionDecorationType, wFunctions);
+
+}
+
+function findInMatch(iMatch: RegExpExecArray, iRegExp: RegExp, iAdjustment?: number): vscode.Range[] {
+	const stringFound: vscode.Range[] = [];
+	let match;
+	while (match = iRegExp.exec(iMatch[0])) {
+
+		const startPos = activeEditor.document.positionAt(match.index + iMatch.index);
+		const endPos = activeEditor.document.positionAt(match.index + match[0].length + iMatch.index + Number(iAdjustment || 0));
+		const decoration = new vscode.Range(startPos, endPos);
+
+		stringFound.push(decoration);
+
+	}
+
+	return stringFound;
 }
