@@ -73,8 +73,9 @@ const Functions =
 		'UNIX_TIMESTAMP\\(', 'UpdateXML\\(', 'UPPER\\(', 'USER\\(', 'UTC_DATE\\(', 'UTC_TIME\\(', 'UTC_TIMESTAMP\\(', 'UUID\\(', 'UUID_SHORT\\(', 'VALIDATE_PASSWORD_STRENGTH\\(', 'VALUES\\(', 'VAR_POP\\(',
 		'VAR_SAMP\\(', 'VARIANCE\\(', 'VERSION\\(', 'WAIT_FOR_EXECUTED_GTID_SET\\(', 'WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS\\(', 'WEEK\\(', 'WEEKDAY\\(', 'WEEKOFYEAR\\(', 'WEIGHT_STRING\\(', 'YEAR\\(', 'YEARWEEK\\('
 	];
-var mysqlKeywordRegEx = new RegExp("(?: " + Keywords.join(' | ') + " )", "gi");
-var mysqlFunctionRegEx = new RegExp("(?: " + Functions.join('|') + " )", "gi");
+const mysqlSpaceRegExSnippet = '(?: |\t|\r\n|\r|\n)'; // VSCode doesn't handle the \s meta-character. The \r\n permutations are to handle linefeeds in Windows, Mac & Linux respectively
+const mysqlKeywordRegEx = new RegExp(mysqlSpaceRegExSnippet + "(?:" + Keywords.join('|') + ")" + mysqlSpaceRegExSnippet, "gi");
+const mysqlFunctionRegEx = new RegExp("(?: " + Functions.join('|') + " )", "gi");
 const mysqlStringRegEx = /'(([^'])*)'/gi;
 const mysqlParamRegEx = /\?/gi;
 
