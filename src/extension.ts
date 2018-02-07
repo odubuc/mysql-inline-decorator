@@ -105,36 +105,50 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 
-	let activeEditor = vscode.window.activeTextEditor;
+    let activeEditor = vscode.window.activeTextEditor,
+        currentFileExtention = '';
+    
 	if (activeEditor) {
-		triggerUpdateDecorations();
+        currentFileExtention = getFileExtention(activeEditor);
+		triggerUpdateDecorations(activeEditor);
 	}
-
+    
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		activeEditor = editor;
 		if (editor) {
-			triggerUpdateDecorations();
+            currentFileExtention = getFileExtention(activeEditor);
+			triggerUpdateDecorations(activeEditor);
 		}
 	}, null, context.subscriptions);
 
 	vscode.workspace.onDidChangeTextDocument(event => {
 		if (activeEditor && event.document === activeEditor.document) {
-			triggerUpdateDecorations();
+			triggerUpdateDecorations(activeEditor);
 		}
 	}, null, context.subscriptions);
 
 	var timeout = null;
-	function triggerUpdateDecorations() {
+	function triggerUpdateDecorations(activeEditor:vscode.TextEditor) {
 		if (timeout) {
 			clearTimeout(timeout);
 		}
 		timeout = setTimeout(updateDecorations, 150);
-	}
+    }
+    
+    function getFileExtention(activeEditor:vscode.TextEditor)
+    {
+        return activeEditor.document.fileName.substring(activeEditor.document.fileName.lastIndexOf('.') + 1, activeEditor.document.fileName.length);
+    }
 
 	function updateDecorations() {
 		if (!activeEditor) {
 			return;
-		}
+        }
+        console.log(currentFileExtention);
+        if(currentFileExtention === 'json')
+        {
+            return;
+        }
 		const regEx = /`(([^`]|\n)*)`/g;
 		const text = activeEditor.document.getText();
 		const largeNumbers: vscode.Range[] = [];
