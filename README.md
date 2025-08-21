@@ -1,6 +1,8 @@
 # README
 -------------------
 
+DEPRECATED! There are other solution out there that accomplish much more.
+
 Add color coding to inline MYSQL string inside ` `
 
 ![sample](preview.png)
